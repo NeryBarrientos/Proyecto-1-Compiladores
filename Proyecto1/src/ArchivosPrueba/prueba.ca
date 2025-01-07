@@ -1,0 +1,17 @@
+                          {
+                         # Esto es un comentario de una sola línea
+                          <!
+                          Esto es un
+                          comentario multilínea
+                          !>
+                           CONJ:conjuntoA->a~z;
+                           CONJ:conjuntoB->m, j,^ ,!,2,%;
+                           CONJ:conjuntoC-> 0 ~ 9;
+                         OPERA:operacion1->U U {conjuntoC}{conjuntoA}{conjuntoB}; #AUBUC
+                         OPERA:operacion2->& U {conjuntoC}{conjuntoA}{conjuntoB}; #(CUA)∩C
+#Evaluamos conjuntos de datos
+                         #EVALUAR ({0~9,A,B,C,D}, operacion3);
+                            EVALUAR({a,b,c},operacion1);
+                            EVALUAR({1,b},operacion2);
+                            #EVALUAR ({0~9}, operacion3);
+                         }

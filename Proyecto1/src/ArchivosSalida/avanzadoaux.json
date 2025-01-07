@@ -1,0 +1,30 @@
+[
+  {
+    "op1": {
+      "leyes": [
+        "De Morgan",
+        "Complemento"
+      ],
+      "conjunto_simplificado": "( pares U impares )"
+    }
+  },
+  {
+    "op2": {
+      "leyes": [
+        "Idempotencia",
+        "De Morgan",
+        "Complemento"
+      ],
+      "conjunto_simplificado": "( pares & naturales )"
+    }
+  },
+  {
+    "op3": {
+      "leyes": [
+        "Absorción",
+        "Complemento"
+      ],
+      "conjunto_simplificado": " (impares)"
+    }
+  }
+]

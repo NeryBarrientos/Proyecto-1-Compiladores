@@ -1,0 +1,127 @@
+package Analizadores;
+
+import java.io.*;
+import java_cup.*;
+import java_cup.runtime.*;
+import java.util.ArrayList;
+import Funciones.GestorConjuntos;
+import Funciones.Operaciones;
+
+class Parser;
+
+parser code 
+{:
+    public GestorConjuntos gestor = GestorConjuntos.getInstancia();
+    public Operaciones operaciones = Operaciones.getInstancia();
+
+    public void syntax_error(Symbol s) {
+        System.err.println("Error Sintáctico: " + s.value + " - Fila: " + s.right + " - Columna: " + s.left + ". Recuperado");
+        String valorComoCadena = String.valueOf(s.value);
+        // Registrar el error usando la clase funcionalidades
+        Funciones.funcionalidades.agregarError("Sintáctico", "Error cerca de: " + valorComoCadena, s.right, s.left);
+    }
+
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception {
+        System.err.println("Error Sintáctico: " + s.value + " - Fila: " + s.right + " - Columna: " + s.left + ". Sin recuperación.");
+        String valorComoCadena = String.valueOf(s.value);
+        // Registrar el error usando la clase funcionalidades
+        Funciones.funcionalidades.agregarError("Sintáctico", "Error irrecuperable cerca de: " + valorComoCadena, s.right, s.left);
+    }
+
+    // En una clase auxiliar o en la clase principal
+    public static void imprimirArbol(Nodo raiz) {
+        // Recorrido en preorden (ejemplo)
+        System.out.print(raiz);
+        if (raiz instanceof NodoOperacion) {
+            NodoOperacion op = (NodoOperacion) raiz;
+            imprimirArbol(op.conjuntoIzq);
+            imprimirArbol(op.conjuntoDer);
+        }
+    }
+
+:};
+
+
+
+terminal CONJ,OPERA,EVALUAR,ID,NUM,IG,COMMA,PUNTOYCOMMA,UNION,INTERSECCION,COMPLEMENTO,DIFERENCIA;
+terminal DOS_PUNTOS,ASIGNACION,CARACTER,VIRGUILLA,PARA,PARC,LLAVEA,LLAVEC,MAYUSCULA,MINUSCULA;
+
+non terminal S;
+non terminal CONJ_DEF;
+non terminal AGRUPACION;
+non terminal LISTADO_VALORES;
+non terminal TIPODEF;
+non terminal LISTADOAGRUPACIONES;
+non terminal AGRUPACIONYLISTADOVALORES;
+non terminal LISTADO_VALORESYAGRUPACION3;
+non terminal LETRA;
+non terminal VALORES;
+non terminal definiciones;
+non terminal definicion;
+non terminal EVALUAR_DEF;
+non terminal OPERAR_DEF;
+non terminal operaciones;
+non terminal OPERADOR;
+non terminal CARACTERES;
+non terminal conjuntos;
+non terminal CONJUNTO;
+
+start with S;
+
+S ::= LLAVEA definiciones LLAVEC;
+
+definiciones ::= definicion definiciones
+    |definicion;
+
+definicion ::= CONJ_DEF
+    |EVALUAR_DEF {: System.out.println("LLego Evaluar"); :}
+    |OPERAR_DEF {: System.out.println("LLego Operar"); :}
+    | error PUNTOYCOMMA ;
+
+CONJ_DEF ::=  CONJ DOS_PUNTOS ID:a ASIGNACION AGRUPACION:b PUNTOYCOMMA {: System.out.println(String.valueOf(a) + ": " + String.valueOf(b)); 
+String[] partes = String.valueOf(b).split("á");
+//gestor.mostrarConjuntos();
+gestor.addConjunto(String.valueOf(a), partes[0].charAt(0) , partes[1].charAt(0)); :}
+    | CONJ DOS_PUNTOS ID:a ASIGNACION LISTADO_VALORES:b PUNTOYCOMMA {: System.out.println(String.valueOf(a) + ": " + String.valueOf(b)); 
+    gestor.addConjunto(String.valueOf(a),String.valueOf(b) ); :};
+
+AGRUPACION ::= VALORES:a VIRGUILLA VALORES:b {:RESULT = a + "á" + b; :};
+
+LISTADO_VALORES ::= LISTADO_VALORES:a COMMA:b VALORES:c {: RESULT = a + "á" + c; :}
+    | VALORES:a {: RESULT = a; :};
+
+VALORES ::= CARACTER:a {: RESULT = a ;:}
+    | UNION:a {: RESULT = a ;:}
+    | INTERSECCION:a {: RESULT = a ;:}
+    | COMPLEMENTO:a {: RESULT = a ;:}
+    | DIFERENCIA:a {: RESULT = a ;:}
+    | LETRA:a {: RESULT = a; :}
+    | VIRGUILLA:a {: RESULT = a; :};
+
+LETRA ::= MAYUSCULA:a {: RESULT = a ;:}
+    | MINUSCULA:a {: RESULT = a ;:};
+
+EVALUAR_DEF ::= EVALUAR PARA LLAVEA LISTADO_VALORES:a LLAVEC COMMA ID:b PARC PUNTOYCOMMA {: System.out.println(String.valueOf(b) + ": " + String.valueOf(a)); 
+operaciones.evaluarOperaciones(String.valueOf(b), String.valueOf(a));:}
+    | EVALUAR PARA LLAVEA AGRUPACION:a LLAVEC COMMA ID:b PARC PUNTOYCOMMA {: System.out.println(String.valueOf(b) + ": " + String.valueOf(a)); :};
+
+OPERAR_DEF ::= OPERA DOS_PUNTOS ID:a ASIGNACION operaciones:b PUNTOYCOMMA {: System.out.println(b);
+operaciones.agregarOperacion(String.valueOf(a),String.valueOf(b));
+operaciones.setConjuntoResultante(String.valueOf(a));
+operaciones.aplicarOperaciones(String.valueOf(a)); :};
+
+operaciones ::= OPERADOR:a conjuntos:b conjuntos:c 
+    {: 
+        RESULT = new NodoOperacion(new NodoOperador(String.valueOf(a)), new NodoConjunto(String.valueOf(b)), new NodoConjunto(String.valueOf(c)));
+    :}
+    | COMPLEMENTO:a conjuntos:b 
+    {: 
+        RESULT = new NodoOperacion(new NodoOperador(String.valueOf(a)), new NodoConjunto(String.valueOf(b)));
+    :};
+
+OPERADOR ::= UNION:a {: RESULT = a; :}
+           | INTERSECCION:a {: RESULT = a; :}
+           | DIFERENCIA:a {: RESULT = a; :};
+
+conjuntos ::= operaciones:a {:RESULT = a; :}
+    | LLAVEA:a ID:b LLAVEC:c {: RESULT = b; :};
